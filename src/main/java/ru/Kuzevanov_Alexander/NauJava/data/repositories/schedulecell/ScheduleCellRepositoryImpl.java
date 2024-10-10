@@ -1,0 +1,43 @@
+package ru.Kuzevanov_Alexander.NauJava.data.repositories.schedulecell;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import ru.Kuzevanov_Alexander.NauJava.data.model.ScheduleCell;
+import ru.Kuzevanov_Alexander.NauJava.data.model.Teacher;
+
+import java.sql.Timestamp;
+import java.util.List;
+
+@Repository
+public class ScheduleCellRepositoryImpl implements ScheduleCellRepositoryCustom {
+
+    private final EntityManager entityManager;
+
+    @Autowired
+    public ScheduleCellRepositoryImpl(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
+
+    @Override
+    public List<ScheduleCell> findByStartTime(Timestamp startTime) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<ScheduleCell> criteriaQuery = criteriaBuilder.createQuery(ScheduleCell.class);
+        Root<ScheduleCell> userRoot = criteriaQuery.from(ScheduleCell.class);
+        Predicate startTimePredicate = criteriaBuilder.equal(userRoot.get("startTime"), startTime);
+        criteriaQuery.select(userRoot).where(startTimePredicate);
+        return entityManager.createQuery(criteriaQuery).getResultList();
+    }
+
+    @Override
+    public List<ScheduleCell> findByTeacher(String teacherFullName) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<ScheduleCell> criteriaQuery = criteriaBuilder.createQuery(ScheduleCell.class);
+        Root<ScheduleCell> userRoot = criteriaQuery.from(ScheduleCell.class);
+        Join<ScheduleCell, Teacher> role = userRoot.join("teacher", JoinType.INNER);
+        Predicate namePredicate = criteriaBuilder.equal(role.get("fullName"), teacherFullName);
+        criteriaQuery.select(userRoot).where(namePredicate);
+        return entityManager.createQuery(criteriaQuery).getResultList();
+    }
+}
